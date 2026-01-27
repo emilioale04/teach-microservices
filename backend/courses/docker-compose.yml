@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: courses-postgres
+    environment:
+      POSTGRES_DB: courses_db
+      POSTGRES_USER: courses_user
+      POSTGRES_PASSWORD: courses_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U courses_user -d courses_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - courses-network
+
+  courses:
+    build: .
+    container_name: courses-service
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://courses_user:courses_password@postgres:5432/courses_db
+      - DEBUG=False
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - courses-network
+
+volumes:
+  postgres_data:
+
+networks:
+  courses-network:
+    driver: bridge
