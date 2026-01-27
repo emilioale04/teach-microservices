@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - AUTH_SERVICE_URL=http://auth:8000
+      - COURSES_SERVICE_URL=http://courses:8000
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+    depends_on:
+      - auth
+      - courses
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - microservices
+
+  auth:
+    build: ../auth
+    container_name: auth-service
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    expose:
+      - "8000"
+    networks:
+      - microservices
+
+  courses:
+    build: ../courses
+    container_name: courses-service
+    environment:
+      - DATABASE_URL=postgresql://courses_user:courses_password@postgres:5432/courses_db
+    depends_on:
+      - postgres
+    expose:
+      - "8000"
+    networks:
+      - microservices
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: courses-postgres
+    environment:
+      POSTGRES_DB: courses_db
+      POSTGRES_USER: courses_user
+      POSTGRES_PASSWORD: courses_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices
+
+volumes:
+  postgres_data:
+
+networks:
+  microservices:
+    driver: bridge
