@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Principal del Docente</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav {
+            background-color: #f0f2f4;
+            border-left: 4px solid #137fec;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-[#1a242d] border-r border-[#dbe0e6] dark:border-slate-800 flex flex-col justify-between py-6">
+<div class="flex flex-col gap-8 px-4">
+<!-- Brand -->
+<div class="flex items-center gap-3 px-2">
+<div class="bg-primary rounded-lg p-2 text-white">
+<span class="material-symbols-outlined text-2xl">school</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-[#111418] dark:text-white text-base font-bold leading-tight">EduPlataforma</h1>
+<p class="text-[#617589] dark:text-slate-400 text-xs font-normal">Panel del Docente</p>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg active-nav text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Cursos</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#617589] dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">quiz</span>
+<span class="text-sm font-medium">Quizzes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#617589] dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Reportes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#617589] dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Ajustes</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Footer -->
+<div class="px-4 flex flex-col gap-4">
+<button class="flex items-center justify-center w-full py-3 bg-primary text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-600 transition-all">
+<span class="material-symbols-outlined mr-2">add_circle</span>
+                    Crear Nuevo
+                </button>
+<div class="flex items-center gap-3 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+<div class="size-9 rounded-full bg-cover bg-center" data-alt="Teacher profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCdiVlXhbTvdeL37XQfxTK-yD_nGl6UkFC90uJtixODSPoaAdMibyHILgeOVxYD8LuiB4Fq9X7xIihzMajQu74L6HhjFadUihggEEkWqSWreukuiOI18AoiwNM7PT31nRLkdlAPbnmd54SD3QtDACl_OjBkNITJo7wZir-nC4wc07F0BY8YnsrkGSZIvg6w0c5aH9iqXr0Yvs-Ntcwf0f2kh060OLcAqLGQ7MmFdZAbkSEZLmiOj8bdgVcXvcR3kh0-6BKukkLi1OQ')"></div>
+<div class="flex flex-col">
+<span class="text-xs font-bold dark:text-white">Prof. Javier R.</span>
+<span class="text-[10px] text-[#617589]">Premium Plan</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-10 flex items-center justify-between bg-white dark:bg-[#1a242d] px-8 py-4 border-b border-[#f0f2f4] dark:border-slate-800">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold text-[#111418] dark:text-white">Panel Principal</h2>
+</div>
+<div class="flex items-center gap-6">
+<!-- Search -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#617589] text-xl">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-500" placeholder="Buscar cursos o alumnos..." type="text"/>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+<button class="p-2 text-[#617589] dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#617589] dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+<div class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">
+                            Semestre 2023-II
+                        </div>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 max-w-7xl mx-auto w-full">
+<!-- Page Heading & CTA -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div class="space-y-1">
+<h1 class="text-4xl font-black text-[#111418] dark:text-white tracking-tight">Mis Cursos</h1>
+<p class="text-[#617589] dark:text-slate-400 text-lg">Gestione sus cursos y verifique el progreso de sus alumnos.</p>
+</div>
+<button class="flex items-center px-6 py-3 bg-primary text-white font-bold rounded-lg shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
+<span class="material-symbols-outlined mr-2">add</span>
+                        Crear Nuevo Curso
+                    </button>
+</div>
+<!-- Stats Overview -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+<div class="bg-white dark:bg-[#1a242d] p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<p class="text-[#617589] dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Total Alumnos</p>
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-3xl font-black text-[#111418] dark:text-white leading-none">128</p>
+<p class="text-[#078838] text-sm font-bold flex items-center mb-0.5">
+<span class="material-symbols-outlined text-sm">trending_up</span> 12%
+                            </p>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a242d] p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<p class="text-[#617589] dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Quizzes Activos</p>
+<span class="material-symbols-outlined text-primary">timer</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-3xl font-black text-[#111418] dark:text-white leading-none">5</p>
+<p class="text-slate-400 text-sm font-bold flex items-center mb-0.5">
+<span class="material-symbols-outlined text-sm">horizontal_rule</span> 0%
+                            </p>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a242d] p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<p class="text-[#617589] dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Promedio Gral.</p>
+<span class="material-symbols-outlined text-primary">military_tech</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-3xl font-black text-[#111418] dark:text-white leading-none">84%</p>
+<p class="text-[#e73908] text-sm font-bold flex items-center mb-0.5">
+<span class="material-symbols-outlined text-sm">trending_down</span> 2%
+                            </p>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a242d] p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<p class="text-[#617589] dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Pendientes</p>
+<span class="material-symbols-outlined text-primary">assignment_late</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-3xl font-black text-[#111418] dark:text-white leading-none">12</p>
+<p class="text-primary text-xs font-bold mb-1">Tareas por revisar</p>
+</div>
+</div>
+</div>
+<!-- Course Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="group bg-white dark:bg-[#1a242d] rounded-xl overflow-hidden border border-[#dbe0e6] dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="aspect-video w-full bg-cover bg-center" data-alt="Advanced Mathematics background illustration" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDGzEnn9lgijpFHM5cgIa5143KuQX1cezmIrUxmCx3ULw0hAdpJB5KlKmn-et6MRkV1HXmTZdZtWFI7ityr3MZRHl8TTJJVgLRR8_NyxExJQbz3Ld_85uFqGPZ2T1KpNYQ2nZH2ZhDemY-hrO4tu-fSETiDWS1u4ZYR2iy0R3Pjo_mB9gq3rL2e48-AygwieYWj79o0ThDVP38AtnWViFL8wPKJeCkfPOV9d1j_8ps6orj4yliynyMuClnF0zAqBP-qnmqs1DjIK_A')"></div>
+<div class="p-5">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-lg font-bold text-[#111418] dark:text-white group-hover:text-primary transition-colors">Matemáticas Avanzadas</h3>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="space-y-1 mb-6">
+<p class="text-[#617589] dark:text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">tag</span> Cód: MAT101 | Semestre: 2023-II
+                                </p>
+<p class="text-[#617589] dark:text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">person</span> 45 Alumnos inscritos
+                                </p>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-primary bg-primary/10 rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors">Administrar</button>
+<button class="px-3 py-2 text-[#617589] dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700">Ver Reporte</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-white dark:bg-[#1a242d] rounded-xl overflow-hidden border border-[#dbe0e6] dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="aspect-video w-full bg-cover bg-center" data-alt="Quantum Physics background illustration" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCBzTyL9oZVoh3uDJVSVmfnChKTl62TTyUd5KgWtNnouPV9_wDkbin9w_yJ1JlmJI9sR-YAHDj3n5C81nKKF0Pkslkg7fwwrrW5HLFwHYZpKrHxofA6ZJecCm_utlAHLtND0RHirVhPy1i2PoAxSFWtLoq8uHPeuYssIhW8-yGUEw673dbtysJbGKxvt4MRfnqR9_k39QRA68FH51gqdvdlOBELUOrxIWbhhcdtaoL_jFMsPTKy2Gea7R2GC8vGGv-WarlezaNffcI')"></div>
+<div class="p-5">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-lg font-bold text-[#111418] dark:text-white group-hover:text-primary transition-colors">Física Cuántica</h3>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="space-y-1 mb-6">
+<p class="text-[#617589] dark:text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">tag</span> Cód: FIS202 | Semestre: 2023-II
+                                </p>
+<p class="text-[#617589] dark:text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">person</span> 32 Alumnos inscritos
+                                </p>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-primary bg-primary/10 rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors">Administrar</button>
+<button class="px-3 py-2 text-[#617589] dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700">Ver Reporte</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-white dark:bg-[#1a242d] rounded-xl overflow-hidden border border-[#dbe0e6] dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="aspect-video w-full bg-cover bg-center" data-alt="Differential Calculus background illustration" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2T-w_1qT3e_OAl7Q57EoOUVtNrZ-gmfUm2pVqyPMWgRF5B6S52TNntPgMEQYdZV7nZrcad2p3CvSvX9bmd8b3NcjnUgapeexR6KhxLppBtoODd_SbAl5fLYAdvISmBZZRVFAs0gEbiUwHDCxuav9hx1ON5SrMZMWRzDvOlTr2mAnPOPHXR8wYXT-JOlJ1KW1_DxP6QjIW42jyKdSEGNr9P0Agp3cd2eGXeAngH3BIftuwbhNdIB8Fnw4OBo2jTU-JvuSEhrdOnHw')"></div>
+<div class="p-5">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-lg font-bold text-[#111418] dark:text-white group-hover:text-primary transition-colors">Cálculo Diferencial</h3>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="space-y-1 mb-6">
+<p class="text-[#617589] dark:text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">tag</span> Cód: CAL105 | Semestre: 2023-II
+                                </p>
+<p class="text-[#617589] dark:text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">person</span> 51 Alumnos inscritos
+                                </p>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-primary bg-primary/10 rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors">Administrar</button>
+<button class="px-3 py-2 text-[#617589] dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700">Ver Reporte</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<section class="mt-12 bg-white dark:bg-[#1a242d] p-6 rounded-xl border border-[#dbe0e6] dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold dark:text-white">Actividad Reciente</h2>
+<a class="text-primary text-sm font-bold hover:underline" href="#">Ver todo</a>
+</div>
+<div class="divide-y dark:divide-slate-800">
+<div class="py-4 flex items-center gap-4">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-medium dark:text-white">Carlos Méndez entregó <span class="text-primary">Quiz #4: Derivadas</span></p>
+<p class="text-xs text-[#617589]">Hace 15 minutos • Cálculo Diferencial</p>
+</div>
+<button class="px-4 py-1.5 border border-slate-200 dark:border-slate-700 rounded text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">Calificar</button>
+</div>
+<div class="py-4 flex items-center gap-4">
+<div class="size-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-medium dark:text-white">Nuevo alumno inscrito en <span class="text-green-600">Física Cuántica</span></p>
+<p class="text-xs text-[#617589]">Hace 2 horas • FIS202</p>
+</div>
+<button class="px-4 py-1.5 border border-slate-200 dark:border-slate-700 rounded text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">Ver Perfil</button>
+</div>
+<div class="py-4 flex items-center gap-4">
+<div class="size-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+<span class="material-symbols-outlined">campaign</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-medium dark:text-white">Anuncio publicado con éxito</p>
+<p class="text-xs text-[#617589]">Ayer a las 18:30 • Matemáticas Avanzadas</p>
+</div>
+<button class="px-4 py-1.5 border border-slate-200 dark:border-slate-700 rounded text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800">Editar</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Dashboard Footer -->
+<footer class="mt-auto p-8 border-t border-[#f0f2f4] dark:border-slate-800 text-center">
+<p class="text-xs text-[#617589] dark:text-slate-500">© 2023 EduPlataforma. Todos los derechos reservados. | Sistema de Gestión Educativa v2.4.0</p>
+</footer>
+</main>
+</div>
+</body></html>
