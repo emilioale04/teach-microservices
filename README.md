@@ -124,7 +124,7 @@ docker-compose up -d
 
 ---
 
-## 🛠️ Servicios y Puertos
+##  Servicios y Puertos
 
 | Servicio | Puerto | Descripción |
 |----------|--------|-------------|
@@ -139,7 +139,7 @@ docker-compose up -d
 
 ---
 
-## 🧪 Desarrollo
+## Desarrollo
 
 ### Comandos útiles
 
