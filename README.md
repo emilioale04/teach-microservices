@@ -14,18 +14,18 @@
 
 ---
 
-## 🌟 ¿Qué es TeachMicroservices?
+## ¿Qué es TeachMicroservices?
 
 **TeachMicroservices** es una plataforma educativa completa diseñada con arquitectura de microservicios que permite a **profesores** crear y gestionar cursos, mientras que los **estudiantes** pueden unirse y participar en evaluaciones interactivas en tiempo real.
 
 ### ✨ Características principales
 
-- 👨‍🏫 **Portal de Profesores**: Gestión completa de cursos, estudiantes y evaluaciones
-- 👩‍🎓 **Portal de Estudiantes**: Interfaz intuitiva para participar en quizzes 
-- 🔐 **Autenticación Segura**: Sistema de auth con Supabase
-- 📊 **Evaluaciones en Tiempo Real**: Sistema de quizzes con monitoreo live
-- 📈 **Analytics y Reportes**: Seguimiento del progreso estudiantil
-- 🚀 **Escalable**: Arquitectura de microservicios con Docker
+- **Portal de Profesores**: Gestión completa de cursos, estudiantes y evaluaciones
+- **Portal de Estudiantes**: Interfaz intuitiva para participar en quizzes 
+- **Autenticación Segura**: Sistema de auth con Supabase
+- **Evaluaciones en Tiempo Real**: Sistema de quizzes con monitoreo live
+- **Analytics y Reportes**: Seguimiento del progreso estudiantil
+- **Escalable**: Arquitectura de microservicios con Docker
 
 ---
 
@@ -72,9 +72,9 @@ graph TB
 
 Asegúrate de tener instalado:
 
-- 🐳 [Docker](https://docker.com) y Docker Compose
-- 🔧 Git
-- 🌐 Navegador web moderno
+- [Docker](https://docker.com) y Docker Compose
+- Git
+- Navegador web moderno
 
 ### ⚡ Instalación
 
@@ -94,21 +94,21 @@ SUPABASE_URL=tu_supabase_url
 SUPABASE_KEY=tu_supabase_key
 ```
 
-3. **Levantar toda la aplicación** 🚀
+3. **Levantar toda la aplicación** 
 ```bash
 docker-compose up -d
 ```
 
-4. **¡Listo!** 🎉
+4. **¡Listo!** 
    - **Portal Profesores**: http://localhost:5173
    - **Portal Estudiantes**: http://localhost:5174
    - **API Gateway**: http://localhost:8000
 
 ---
 
-## 🎯 Cómo usar la plataforma
+## Cómo usar la plataforma
 
-### 👨‍🏫 Para Profesores
+### Para Profesores
 
 1. **Registro/Login**: Accede al portal de profesores
 2. **Crear Curso**: Añade un nuevo curso con estudiantes
@@ -116,7 +116,7 @@ docker-compose up -d
 4. **Crear Quiz**: Diseña evaluaciones con múltiples preguntas
 5. **Monitorear**: Ve respuestas en tiempo real durante el quiz
 
-### 👩‍🎓 Para Estudiantes
+###  Para Estudiantes
 
 1. **Unirse al Quiz**: Ingresa el código proporcionado por el profesor
 2. **Responder**: Completa las preguntas del quiz
