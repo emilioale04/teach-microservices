@@ -128,14 +128,14 @@ docker-compose up -d
 
 | Servicio | Puerto | Descripción |
 |----------|--------|-------------|
-| 🌐 **Frontend Profesores** | 5173 | Interfaz para gestión de cursos |
-| 📚 **Frontend Estudiantes** | 5174 | Portal para participar en quizzes |
-| 🚪 **API Gateway** | 8000 | Punto de entrada único para APIs |
-| 🔐 **Auth Service** | 8001 | Gestión de autenticación |
-| 📖 **Courses Service** | 8002 | Gestión de cursos y estudiantes |
-| 📝 **Quizzes Service** | 8003 | Gestión de evaluaciones |
-| 🐘 **PostgreSQL** | 5433 | Base de datos de cursos |
-| 🍃 **MongoDB** | 27017 | Base de datos de quizzes |
+| **Frontend Profesores** | 5173 | Interfaz para gestión de cursos |
+| **Frontend Estudiantes** | 5174 | Portal para participar en quizzes |
+| **API Gateway** | 8000 | Punto de entrada único para APIs |
+| **Auth Service** | 8001 | Gestión de autenticación |
+| **Courses Service** | 8002 | Gestión de cursos y estudiantes |
+| **Quizzes Service** | 8003 | Gestión de evaluaciones |
+| **PostgreSQL** | 5433 | Base de datos de cursos |
+| **MongoDB** | 27017 | Base de datos de quizzes |
 
 ---
 
