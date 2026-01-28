@@ -1,7 +1,19 @@
+# =============================================================================
+# MICROSERVICIO DE QUIZZES - APLICACIÓN FASTAPI PRINCIPAL
+# =============================================================================
+# Este es el archivo principal del microservicio de quizzes que maneja:
+# - Gestión completa de quizzes (CRUD)
+# - Participación de estudiantes en tiempo real
+# - Monitoreo de progreso via WebSockets
+# - Comunicación con el microservicio de cursos
+# - Estadísticas y reportes de rendimiento
+# =============================================================================
+
 """
 Quizzes Microservice - FastAPI Application
 Handles quiz management, student participation, and real-time progress monitoring via WebSockets.
 """
+
 import os
 import logging
 from typing import List, Dict, Optional
@@ -13,6 +25,7 @@ from fastapi.responses import JSONResponse
 import httpx
 from dotenv import load_dotenv
 
+# Importaciones locales del microservicio
 from database import connect_to_mongo, close_mongo_connection, get_collection, QUIZZES_COLLECTION
 from schemas import (
     QuizCreate, QuizUpdate, QuizResponse, QuizSummary, QuizForStudent,
@@ -25,129 +38,231 @@ from schemas import (
 )
 import crud
 
+# =============================================================================
+# CONFIGURACIÓN INICIAL
+# =============================================================================
+
+# Cargar variables de entorno
 load_dotenv()
 
-# Configure logging
+# Configurar sistema de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Service URLs
+# URL del microservicio de cursos para validaciones
 COURSES_SERVICE_URL = os.getenv("COURSES_SERVICE_URL", "http://courses:8000")
 
 
-# ========================
-# WebSocket Connection Manager
-# ========================
+# =============================================================================
+# GESTOR DE CONEXIONES WEBSOCKET
+# =============================================================================
+
 class ConnectionManager:
     """
-    Manages WebSocket connections for real-time quiz monitoring.
+    Administrador de conexiones WebSocket para monitoreo en tiempo real de quizzes.
+
+    Esta clase maneja las conexiones WebSocket de profesores que quieren
+    monitorear el progreso de sus estudiantes durante un quiz activo.
+    Permite broadcasting de eventos como unión de estudiantes, progreso
+    de respuestas y finalización de quizzes.
     """
+
     def __init__(self):
-        # quiz_id -> list of websocket connections
+        # Diccionario que mapea quiz_id -> lista de conexiones WebSocket
         self.active_connections: Dict[str, List[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, quiz_id: str):
-        """Accept a new WebSocket connection for a quiz."""
+        """
+        Acepta una nueva conexión WebSocket para monitorear un quiz.
+
+        Args:
+            websocket: La conexión WebSocket entrante
+            quiz_id: ID del quiz a monitorear
+        """
+        # Aceptar la conexión WebSocket
         await websocket.accept()
+
+        # Inicializar lista si es el primer monitor para este quiz
         if quiz_id not in self.active_connections:
             self.active_connections[quiz_id] = []
+
+        # Agregar conexión a la lista
         self.active_connections[quiz_id].append(websocket)
+
         logger.info(f"WebSocket connected for quiz {quiz_id}. Total connections: {len(self.active_connections[quiz_id])}")
 
     def disconnect(self, websocket: WebSocket, quiz_id: str):
-        """Remove a WebSocket connection."""
+        """
+        Remueve una conexión WebSocket cuando se desconecta.
+
+        Args:
+            websocket: La conexión WebSocket a remover
+            quiz_id: ID del quiz que estaba siendo monitoreado
+        """
+        # Remover conexión si existe en la lista del quiz
         if quiz_id in self.active_connections:
             if websocket in self.active_connections[quiz_id]:
                 self.active_connections[quiz_id].remove(websocket)
+
+            # Limpiar entrada si no quedan conexiones para este quiz
             if not self.active_connections[quiz_id]:
                 del self.active_connections[quiz_id]
+
         logger.info(f"WebSocket disconnected for quiz {quiz_id}")
 
     async def broadcast_to_quiz(self, quiz_id: str, message: dict):
-        """Send a message to all connections monitoring a quiz."""
+        """
+        Envía un mensaje a todos los monitores conectados a un quiz específico.
+
+        Maneja conexiones muertas automáticamente removiendo las que fallen.
+
+        Args:
+            quiz_id: ID del quiz a cuyos monitores enviar el mensaje
+            message: Diccionario con el mensaje a enviar
+        """
         logger.info(f"Broadcasting to quiz {quiz_id}: {message.get('event', 'unknown')} - Active connections: {self.get_connection_count(quiz_id)}")
-        
+
+        # Verificar que hay conexiones activas para este quiz
         if quiz_id in self.active_connections:
             dead_connections = []
+
+            # Intentar enviar mensaje a cada conexión
             for connection in self.active_connections[quiz_id]:
                 try:
                     await connection.send_json(message)
                     logger.info(f"Message sent successfully to a monitor for quiz {quiz_id}")
                 except Exception as e:
                     logger.error(f"Error sending message to monitor: {e}")
+                    # Marcar conexión como muerta para limpieza posterior
                     dead_connections.append(connection)
-            
-            # Clean up dead connections
+
+            # Limpiar conexiones muertas
             for dead in dead_connections:
                 self.disconnect(dead, quiz_id)
         else:
             logger.warning(f"No active connections for quiz {quiz_id}. Active quizzes: {list(self.active_connections.keys())}")
 
     def get_connection_count(self, quiz_id: str) -> int:
-        """Get the number of active connections for a quiz."""
+        """
+        Obtiene el número de conexiones activas para un quiz.
+
+        Args:
+            quiz_id: ID del quiz
+
+        Returns:
+            int: Número de conexiones activas
+        """
         return len(self.active_connections.get(quiz_id, []))
+
+# =============================================================================
+# INSTANCIA GLOBAL DEL GESTOR DE CONEXIONES
+# =============================================================================
+
+# Instancia global del ConnectionManager para toda la aplicación
+manager = ConnectionManager()
 
 
 # Global connection manager
 manager = ConnectionManager()
 
 
-# ========================
-# Lifespan Context Manager
-# ========================
+# =============================================================================
+# GESTOR DEL CICLO DE VIDA DE LA APLICACIÓN (LIFESPAN)
+# =============================================================================
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Handle startup and shutdown events."""
-    # Startup
+    """
+    Gestor del ciclo de vida de la aplicación FastAPI.
+
+    Se ejecuta durante el startup para inicializar conexiones a base de datos
+    y crear índices necesarios. Durante shutdown, cierra conexiones limpiamente.
+
+    Args:
+        app: Instancia de FastAPI
+
+    Yields:
+        None
+    """
+    # STARTUP: Inicializar recursos
     logger.info("Starting Quizzes Microservice...")
+
+    # Conectar a MongoDB
     await connect_to_mongo()
-    
-    # Create indexes
+
+    # Crear índices de base de datos para optimización
     try:
         quizzes_collection = get_collection(QUIZZES_COLLECTION)
+        # Índice para búsquedas por course_id
         await quizzes_collection.create_index("course_id")
+        # Índice para búsquedas por status
         await quizzes_collection.create_index("status")
-        
+
         responses_collection = get_collection("responses")
+        # Índice compuesto único para respuestas (quiz_id + student_email)
         await responses_collection.create_index([("quiz_id", 1), ("student_email", 1)], unique=True)
+
         logger.info("Database indexes created successfully")
     except Exception as e:
         logger.error(f"Error creating indexes: {e}")
-    
+
+    # Aplicación ejecutándose
     yield
-    
-    # Shutdown
+
+    # SHUTDOWN: Limpiar recursos
     logger.info("Shutting down Quizzes Microservice...")
     await close_mongo_connection()
 
 
-# ========================
-# FastAPI Application
-# ========================
+# =============================================================================
+# CONFIGURACIÓN DE LA APLICACIÓN FASTAPI
+# =============================================================================
+
+# Crear instancia de FastAPI con configuración completa
 app = FastAPI(
     title="Quizzes Microservice",
     description="Microservice for managing quizzes, questions, and real-time student participation",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan  # Usar el lifespan manager definido arriba
 )
 
 
-# ========================
-# Helper Functions
-# ========================
+# =============================================================================
+# FUNCIONES HELPER Y UTILIDADES
+# =============================================================================
+
 async def validate_student_enrollment(course_id: str, student_email: str) -> dict:
     """
-    Validate that a student is enrolled in a course by calling the courses microservice.
+    Valida que un estudiante esté matriculado en un curso específico.
+
+    Realiza una llamada HTTP al microservicio de cursos para verificar
+    la matrícula del estudiante. Esencial para asegurar que solo estudiantes
+    autorizados puedan participar en quizzes.
+
+    Args:
+        course_id: ID del curso a verificar
+        student_email: Email del estudiante
+
+    Returns:
+        dict: Datos del estudiante si está matriculado
+
+    Raises:
+        HTTPException: Si hay problemas de conectividad o el estudiante no está matriculado
     """
     try:
+        # Crear cliente HTTP asíncrono con timeout
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # Construir URL del endpoint de validación en courses service
             url = f"{COURSES_SERVICE_URL}/courses/{course_id}/validate/{student_email}"
+
+            # Realizar petición GET
             response = await client.get(url)
-            
+
+            # Procesar respuesta
             if response.status_code == 200:
-                return response.json()
+                return response.json()  # Estudiante matriculado
             elif response.status_code == 404:
-                return None
+                return None  # Estudiante no encontrado o no matriculado
             else:
                 logger.error(f"Error validating student: {response.status_code}")
                 raise HTTPException(
@@ -170,17 +285,34 @@ async def validate_student_enrollment(course_id: str, student_email: str) -> dic
 
 async def verify_course_ownership(course_id: str, teacher_id: str) -> dict:
     """
-    Verify that a course exists and belongs to the specified teacher.
-    Calls the courses microservice with X-User-ID header to validate ownership.
+    Verifica que un curso existe y pertenece al profesor especificado.
+
+    Realiza una llamada al microservicio de cursos con el header X-User-ID
+    para validar la propiedad del curso. Esencial para autorizar operaciones
+    de profesores sobre sus cursos.
+
+    Args:
+        course_id: ID del curso a verificar
+        teacher_id: ID del profesor que debería ser propietario
+
+    Returns:
+        dict: Datos del curso si pertenece al profesor
+
+    Raises:
+        HTTPException: Si el curso no existe, no pertenece al profesor,
+                      o hay problemas de conectividad
     """
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # URL del endpoint de obtención de curso
             url = f"{COURSES_SERVICE_URL}/courses/{course_id}"
+            # Header para identificación del profesor
             headers = {"X-User-ID": teacher_id}
+
             response = await client.get(url, headers=headers)
-            
+
             if response.status_code == 200:
-                return response.json()
+                return response.json()  # Curso encontrado y pertenece al profesor
             elif response.status_code == 404:
                 raise HTTPException(status_code=404, detail="Curso no encontrado")
             elif response.status_code == 403:
@@ -207,36 +339,64 @@ async def verify_course_ownership(course_id: str, teacher_id: str) -> dict:
             detail="No se puede conectar con el servicio de cursos"
         )
     except HTTPException:
-        raise
+        raise  # Re-lanzar excepciones HTTP ya manejadas
 
 
 async def verify_quiz_ownership(quiz_id: str, teacher_id: str) -> dict:
     """
-    Verify that a quiz exists and the teacher owns its associated course.
+    Verifica que un quiz existe y el profesor es propietario del curso asociado.
+
+    Primero obtiene el quiz, luego verifica que el profesor sea propietario
+    del curso al que pertenece el quiz.
+
+    Args:
+        quiz_id: ID del quiz a verificar
+        teacher_id: ID del profesor
+
+    Returns:
+        dict: Datos del quiz si es válido
+
+    Raises:
+        HTTPException: Si el quiz no existe o no tiene permisos
     """
+    # Obtener quiz de la base de datos
     quiz = await crud.get_quiz_by_id(quiz_id)
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz no encontrado")
-    
-    # Verify the teacher owns the course
+
+    # Verificar propiedad del curso asociado
     await verify_course_ownership(quiz["course_id"], teacher_id)
-    
+
     return quiz
 
 
 async def get_teacher_course_ids(teacher_id: str) -> List[str]:
     """
-    Get all course IDs that belong to a teacher.
-    Calls the courses microservice to get the teacher's courses.
+    Obtiene todos los IDs de cursos que pertenecen a un profesor específico.
+
+    Utilizado para filtrar quizzes por cursos del profesor.
+    Realiza una llamada al microservicio de cursos.
+
+    Args:
+        teacher_id: ID del profesor
+
+    Returns:
+        List[str]: Lista de IDs de cursos del profesor
+
+    Raises:
+        Exception: Si hay error en la comunicación (se registra pero no se lanza)
     """
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # Endpoint para listar cursos del profesor
             url = f"{COURSES_SERVICE_URL}/courses"
             params = {"teacher_id": teacher_id}
+
             response = await client.get(url, params=params)
-            
+
             if response.status_code == 200:
                 courses = response.json()
+                # Extraer solo los IDs de los cursos
                 return [course["id"] for course in courses]
             else:
                 logger.error(f"Error getting teacher courses: {response.status_code}")
