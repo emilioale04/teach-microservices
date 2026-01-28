@@ -199,7 +199,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 - 🐛 **Reportar bugs**: Abre un issue
 - 💬 **Discusiones**: Usa las GitHub Discussions
-- 📧 **Contacto directo**: [tu-email@ejemplo.com]
+- 📧 **Contacto directo**: [peraltajosue111@gmail.com]
 
 ---
 
