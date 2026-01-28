@@ -34,9 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await authApi.login(email, password);
-    const { access_token, user_id } = response.data;
+    const { access_token, refresh_token, user_id } = response.data;
 
     localStorage.setItem('token', access_token);
+    localStorage.setItem('refreshToken', refresh_token);
     localStorage.setItem('userId', user_id);
     localStorage.setItem('email', email);
 
@@ -46,9 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (email: string, password: string) => {
     const response = await authApi.signup(email, password);
-    const { access_token, user_id } = response.data;
+    const { access_token, refresh_token, user_id } = response.data;
 
     localStorage.setItem('token', access_token);
+    localStorage.setItem('refreshToken', refresh_token);
     localStorage.setItem('userId', user_id);
     localStorage.setItem('email', email);
 
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('email');
     setToken(null);

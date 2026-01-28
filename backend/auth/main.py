@@ -23,7 +23,12 @@ class SignUpRequest(BaseModel):
 
 class AuthResponse(BaseModel):
     access_token: str
+    refresh_token: str
     user_id: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 
 class PasswordResetRequest(BaseModel):
@@ -46,15 +51,27 @@ async def signup(request: SignUpRequest):
             "password": request.password
         })
         
-        if not response.user or not response.session:
+        # Supabase puede crear el usuario pero no devolver sesión si requiere confirmación de email
+        if not response.user:
             raise HTTPException(status_code=400, detail="Error al crear usuario")
+        
+        # Si no hay sesión, es porque requiere confirmación de email
+        if not response.session:
+            raise HTTPException(
+                status_code=400, 
+                detail="Usuario creado. Por favor verifica tu email para confirmar la cuenta."
+            )
         
         return AuthResponse(
             access_token=response.session.access_token,
+            refresh_token=response.session.refresh_token,
             user_id=response.user.id
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"Error en signup: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error al crear usuario: {str(e)}")
 
 
 @app.post("/login", response_model=AuthResponse)
@@ -70,10 +87,29 @@ async def login(request: SignUpRequest):
         
         return AuthResponse(
             access_token=response.session.access_token,
+            refresh_token=response.session.refresh_token,
             user_id=response.user.id
         )
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
+
+
+@app.post("/refresh", response_model=AuthResponse)
+async def refresh_token(request: RefreshTokenRequest):
+    """Refrescar access token usando refresh token"""
+    try:
+        response = supabase.auth.refresh_session(request.refresh_token)
+        
+        if not response.user or not response.session:
+            raise HTTPException(status_code=401, detail="Refresh token inválido o expirado")
+        
+        return AuthResponse(
+            access_token=response.session.access_token,
+            refresh_token=response.session.refresh_token,
+            user_id=response.user.id
+        )
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Error al refrescar token: {str(e)}")
 
 
 @app.get("/health")

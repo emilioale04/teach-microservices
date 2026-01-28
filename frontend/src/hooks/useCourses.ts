@@ -30,10 +30,15 @@ export function useCourses(teacherId: string | undefined) {
   return { courses, isLoading, error, refetch: fetchCourses };
 }
 
+export type CourseError = {
+  type: 'not_found' | 'forbidden' | 'error';
+  message: string;
+};
+
 export function useCourse(courseId: string | undefined) {
   const [course, setCourse] = useState<CourseWithStudents | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<CourseError | null>(null);
 
   const fetchCourse = async () => {
     if (!courseId) return;
@@ -43,8 +48,17 @@ export function useCourse(courseId: string | undefined) {
       const response = await coursesApi.get(courseId);
       setCourse(response.data);
       setError(null);
-    } catch (err) {
-      setError('Error al cargar curso');
+    } catch (err: any) {
+      const status = err.response?.status;
+      const detail = err.response?.data?.detail;
+      
+      if (status === 404) {
+        setError({ type: 'not_found', message: detail || 'Curso no encontrado' });
+      } else if (status === 403) {
+        setError({ type: 'forbidden', message: detail || 'No tienes permiso para acceder a este curso' });
+      } else {
+        setError({ type: 'error', message: detail || 'Error al cargar curso' });
+      }
       console.error(err);
     } finally {
       setIsLoading(false);

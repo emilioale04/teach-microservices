@@ -1,34 +1,66 @@
 # API Gateway - Teach Microservices
 
-API Gateway unificado que actúa como punto de entrada único para los microservicios de autenticación y gestión de cursos.
+API Gateway unificado que actúa como punto de entrada único para los microservicios. Implementa el **patrón BFF (Backend for Frontend)** para separar los flujos de Docentes y Estudiantes.
 
 ## Características
 
+- ✅ **Patrón BFF** - Flujos separados para Docentes (JWT) y Estudiantes (email)
 - ✅ **Proxy Routing Asíncrono** con httpx
-- ✅ **Documentación Swagger Unificada** (combina OpenAPI de todos los servicios)
+- ✅ **WebSocket Proxy** para monitoreo de quizzes en tiempo real
 - ✅ **Middleware CORS** configurable
-- ✅ **Validación de JWT** opcional con Supabase
-- ✅ **Manejo Global de Errores**
+- ✅ **Validación de JWT** para rutas de docentes
 - ✅ **Health Check** de todos los servicios
-- ✅ **Logging centralizado**
-- ✅ **Configuración por entornos** con pydantic-settings
 - ✅ **Docker ready**
 
-## Arquitectura
+## Arquitectura BFF
 
 ```
-Cliente
-   ↓
-API Gateway :8000
-   ├── /auth/* → Auth Service :8001
-   ├── /courses/* → Courses Service :8002
-   └── /students/* → Courses Service :8002
+┌─────────────────────────────────────────────────────────────┐
+│                      API Gateway :8000                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   TEACHER BFF (JWT Required)    │    STUDENT BFF (Email)    │
+│   ─────────────────────────────  │   ─────────────────────   │
+│   /auth/*   → Auth :8001        │   /student/quiz/:id/info  │
+│   /courses/* → Courses :8002     │   /student/quiz/:id/join  │
+│   /quizzes/* → Quizzes :8003     │   /student/quiz/:id/questions │
+│   /students/* → Courses :8002    │   /student/quiz/:id/answer │
+│   /ws/quizzes/*/monitor (WS)     │   /student/quiz/:id/progress │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+         ↑                                    ↑
+   Teacher Frontend                    Student Frontend
+   localhost:5173                      localhost:5174
 ```
+
+## Endpoints por BFF
+
+### Teacher BFF (Autenticación JWT requerida)
+
+| Método | Ruta | Descripción | Servicio |
+|--------|------|-------------|----------|
+| POST | /auth/signup | Registro | Auth |
+| POST | /auth/login | Login | Auth |
+| GET | /courses | Listar cursos | Courses |
+| POST | /courses | Crear curso | Courses |
+| GET | /quizzes | Listar quizzes | Quizzes |
+| POST | /quizzes | Crear quiz | Quizzes |
+| WS | /ws/quizzes/:id/monitor | Monitoreo tiempo real | Quizzes |
+
+### Student BFF (Sin JWT - Solo validación de email)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | /student/quiz/:id/info | Info básica del quiz |
+| POST | /student/quiz/:id/join | Unirse al quiz (valida inscripción) |
+| GET | /student/quiz/:id/questions | Obtener preguntas (sin respuestas) |
+| POST | /student/quiz/:id/answer | Enviar respuesta |
+| GET | /student/quiz/:id/progress | Ver progreso/resultados |
 
 ## Requisitos
 
 - Python 3.11+
-- Microservicios Auth y Courses en ejecución
+- Microservicios Auth, Courses y Quizzes en ejecución
 
 ## Instalación
 
@@ -43,9 +75,10 @@ Editar `.env`:
 # URLs de microservicios
 AUTH_SERVICE_URL=http://localhost:8001
 COURSES_SERVICE_URL=http://localhost:8002
+QUIZZES_SERVICE_URL=http://localhost:8003
 
 # CORS
-CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost:5174"]
 
 # JWT (opcional)
 SUPABASE_JWT_SECRET=your-jwt-secret

@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.git
+.gitignore
+.env
+.env.*
+*.log
+.vscode
+.idea
+README.md
+FRONTEND_README.md
+SETUP_COMPLETE.md
+Dockerfile

@@ -1,0 +1,164 @@
+version: '3.8'
+
+services:
+  # ===================
+  # BASE DE DATOS
+  # ===================
+  postgres:
+    image: postgres:15-alpine
+    container_name: teach-postgres
+    environment:
+      POSTGRES_DB: courses_db
+      POSTGRES_USER: courses_user
+      POSTGRES_PASSWORD: courses_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U courses_user -d courses_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - teach-network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: teach-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - teach-network
+
+  # ===================
+  # BACKEND SERVICES
+  # ===================
+  auth:
+    build: ./backend/auth
+    container_name: teach-auth
+    ports:
+      - "8001:8000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - teach-network
+
+  courses:
+    build: ./backend/courses
+    container_name: teach-courses
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://courses_user:courses_password@postgres:5432/courses_db
+      - DEBUG=False
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - teach-network
+
+  quizzes:
+    build: ./backend/quizzes
+    container_name: teach-quizzes
+    ports:
+      - "8003:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=quizzes_db
+      - COURSES_SERVICE_URL=http://courses:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      courses:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - teach-network
+
+  gateway:
+    build: ./backend/gateway
+    container_name: teach-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth:8000
+      - COURSES_SERVICE_URL=http://courses:8000
+      - QUIZZES_SERVICE_URL=http://quizzes:8000
+      - SUPABASE_URL=${SUPABASE_URL}
+    depends_on:
+      - auth
+      - courses
+      - quizzes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - teach-network
+
+  # ===================
+  # FRONTEND
+  # ===================
+  frontend:
+    build: ./frontend
+    container_name: teach-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - gateway
+    restart: unless-stopped
+    networks:
+      - teach-network
+
+  frontend-students:
+    build: ./frontend-students
+    container_name: teach-frontend-students
+    ports:
+      - "5174:80"
+    depends_on:
+      - gateway
+    restart: unless-stopped
+    networks:
+      - teach-network
+
+volumes:
+  postgres_data:
+  mongodb_data:
+
+networks:
+  teach-network:
+    driver: bridge
